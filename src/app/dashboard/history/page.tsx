@@ -5,6 +5,11 @@ import Interview from '@/models/Interview';
 import User from '@/models/User';
 import Link from 'next/link';
 import { Calendar, Award, AlertTriangle } from 'lucide-react';
+import type { Types } from 'mongoose';
+
+type UserIdProjection = {
+  _id: Types.ObjectId;
+};
 
 export default async function History() {
   const session = await getServerSession(authOptions);
@@ -13,7 +18,11 @@ export default async function History() {
 
   let interviews: any[] = [];
   if (session?.user?.email) {
-    const user = await User.findOne({ email: session.user.email }).select('_id').lean();
+    const user: UserIdProjection | null = await User.findOne({ email: session.user.email })
+      .select('_id')
+      .lean<UserIdProjection>()
+      .exec();
+
     if (user?._id) {
       interviews = await Interview.find({ userId: user._id })
         .sort({ createdAt: -1 })

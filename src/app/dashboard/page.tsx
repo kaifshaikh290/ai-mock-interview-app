@@ -5,6 +5,11 @@ import Interview from '@/models/Interview';
 import User from '@/models/User';
 import Link from 'next/link';
 import { TrendingUp, Award, Clock } from 'lucide-react';
+import type { Types } from 'mongoose';
+
+type UserIdProjection = {
+  _id: Types.ObjectId;
+};
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
@@ -14,7 +19,10 @@ export default async function Dashboard() {
   let interviews: any[] = [];
 
   if (session?.user?.email) {
-    const user = await User.findOne({ email: session.user.email }).select('_id').lean(); // Map session user to MongoDB user
+    const user: UserIdProjection | null = await User.findOne({ email: session.user.email })
+      .select('_id')
+      .lean<UserIdProjection>()
+      .exec(); // Map session user to MongoDB user
 
     if (user?._id) {
       interviews = await Interview.find({ userId: user._id })
